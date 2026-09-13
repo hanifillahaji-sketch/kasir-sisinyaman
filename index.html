@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0f172a">
+<title>Kasir Offline - Warung Makan</title>
+<style>
+:root{--bg:#f1f5f9;--card:#fff;--text:#0f172a;--muted:#64748b;--primary:#0f766e;--primary2:#14b8a6;--danger:#dc2626;--line:#e2e8f0}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--text)}
+button,input,select{font:inherit}button{cursor:pointer;border:0}.app{min-height:100vh;display:flex}.sidebar{width:230px;background:#0f172a;color:white;padding:18px;position:sticky;top:0;height:100vh}.brand{font-size:20px;font-weight:800;margin-bottom:25px}.brand small{display:block;color:#94a3b8;font-size:12px;margin-top:4px}
+.nav button{width:100%;padding:12px;margin:4px 0;background:transparent;color:#cbd5e1;text-align:left;border-radius:10px}.nav button.active,.nav button:hover{background:#1e293b;color:#fff}.main{flex:1;padding:18px;max-width:1500px;margin:auto;width:100%}.top{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:18px}.top h1{margin:0;font-size:24px}.status{font-size:12px;color:#047857;background:#d1fae5;padding:7px 10px;border-radius:999px}
+.page{display:none}.page.active{display:block}.grid{display:grid;grid-template-columns:1fr 390px;gap:16px}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 2px 10px #00000008}.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}input,select{padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;outline:none}.search{flex:1;min-width:180px}.cats{display:flex;gap:7px;overflow:auto;margin-bottom:12px}.cats button{white-space:nowrap;padding:8px 12px;border-radius:999px;background:#e2e8f0;color:#334155}.cats button.active{background:var(--primary);color:#fff}.products{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:10px}.product{padding:14px;text-align:left;border:1px solid var(--line);border-radius:14px;background:#fff}.product:hover{border-color:var(--primary2);transform:translateY(-1px)}.product .emoji{font-size:30px}.product strong{display:block;margin-top:7px}.price{color:var(--primary);font-weight:700;margin-top:4px}.cart{position:sticky;top:18px}.cart-items{max-height:390px;overflow:auto}.cart-row{padding:11px 0;border-bottom:1px solid var(--line)}.rowtop{display:flex;justify-content:space-between;gap:8px}.qty{display:flex;align-items:center;gap:7px;margin-top:7px}.qty button{width:28px;height:28px;border-radius:8px;background:#e2e8f0}.total{font-size:20px;font-weight:800;display:flex;justify-content:space-between;margin:14px 0}.btn{padding:10px 13px;border-radius:10px;background:#e2e8f0;color:#0f172a}.btn.primary{background:var(--primary);color:#fff}.btn.danger{background:#fee2e2;color:#991b1b}.btn.full{width:100%;padding:13px}.muted{color:var(--muted);font-size:13px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.stat b{font-size:24px;display:block;margin-top:5px}.tablewrap{overflow:auto}.table{width:100%;border-collapse:collapse}.table th,.table td{text-align:left;padding:11px;border-bottom:1px solid var(--line);white-space:nowrap}.formgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.formgrid>*{width:100%}.modal{display:none;position:fixed;inset:0;background:#0008;align-items:center;justify-content:center;padding:16px;z-index:5}.modal.show{display:flex}.modalbox{background:#fff;border-radius:16px;padding:18px;max-width:460px;width:100%}.modalactions{display:flex;gap:8px;justify-content:flex-end;margin-top:15px}
+@media(max-width:900px){.sidebar{width:72px;padding:10px}.brand{font-size:0;text-align:center}.brand:first-letter{font-size:25px}.brand small,.nav span{display:none}.nav button{text-align:center}.grid{grid-template-columns:1fr}.cart{position:static}.stats{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.main{padding:10px}.top h1{font-size:19px}.stats{grid-template-columns:1fr 1fr}.formgrid{grid-template-columns:1fr}.products{grid-template-columns:repeat(2,1fr)}}
+</style>
+
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kasir Warung">
+</head>
+<body>
+<div class="app">
+<aside class="sidebar"><div class="brand">🍜 <span>Kasir Warung</span><small>Offline POS</small></div>
+<div class="nav">
+<button class="active" data-page="kasir">🧾 <span>Kasir</span></button>
+<button data-page="menu">🍜 <span>Menu & Stok</span></button>
+<button data-page="laporan">📊 <span>Laporan</span></button>
+<button data-page="backup">💾 <span>Backup</span></button>
+<button data-page="pengaturan">⚙️ <span>Pengaturan</span></button>
+</div></aside>
+<main class="main">
+<div class="top"><h1 id="title">Kasir</h1><div class="status">● Offline • Data tersimpan di perangkat</div></div>
+
+<section id="kasir" class="page active">
+<div class="grid"><div class="card">
+<div class="toolbar"><input id="search" class="search" placeholder="Cari menu..."><button class="btn" onclick="openQuickAdd()">＋ Menu</button></div>
+<div id="cats" class="cats"></div><div id="products" class="products"></div></div>
+<div class="card cart"><h3 style="margin-top:0">Pesanan</h3><div id="cartItems" class="cart-items"></div>
+<div class="total"><span>Total</span><span id="cartTotal">Rp0</span></div>
+<div class="toolbar"><input id="discount" type="number" min="0" value="0" placeholder="Diskon"><select id="payment"><option>Tunai</option><option>QRIS</option><option>Transfer</option></select></div>
+<input id="paid" type="number" min="0" placeholder="Uang dibayar" style="width:100%;margin-bottom:8px">
+<div class="muted">Kembalian: <b id="change">Rp0</b></div>
+<button class="btn primary full" style="margin-top:12px" onclick="checkout()">Bayar & Cetak Struk</button>
+<button class="btn full" style="margin-top:7px" onclick="clearCart()">Kosongkan</button>
+</div></div></section>
+
+<section id="menu" class="page"><div class="card"><div class="toolbar"><button class="btn primary" onclick="openProduct()">＋ Tambah Menu</button><input id="menuSearch" class="search" placeholder="Cari menu..." oninput="renderMenu()"></div><div class="tablewrap"><table class="table"><thead><tr><th>Menu</th><th>Kategori</th><th>Harga</th><th>Stok</th><th>Aksi</th></tr></thead><tbody id="menuTable"></tbody></table></div></div></section>
+
+<section id="laporan" class="page"><div class="stats">
+<div class="card stat"><span class="muted">Omzet</span><b id="sOmzet">Rp0</b></div><div class="card stat"><span class="muted">Transaksi</span><b id="sTrans">0</b></div><div class="card stat"><span class="muted">Item Terjual</span><b id="sItems">0</b></div><div class="card stat"><span class="muted">Laba Kotor</span><b id="sProfit">Rp0</b></div>
+</div><br><div class="card"><h3>Riwayat Transaksi</h3><div class="tablewrap"><table class="table"><thead><tr><th>No</th><th>Tanggal</th><th>Total</th><th>Bayar</th><th>Metode</th></tr></thead><tbody id="salesTable"></tbody></table></div></div></section>
+
+<section id="backup" class="page"><div class="card"><h3>Backup & Restore</h3><p class="muted">Simpan produk, stok, dan riwayat transaksi ke file JSON. Gunakan restore untuk memindahkan data ke perangkat lain.</p><div class="toolbar"><button class="btn primary" onclick="backup()">⬇️ Backup Data</button><label class="btn">⬆️ Restore Data<input id="restore" type="file" accept=".json" style="display:none"></label><button class="btn danger" onclick="resetAll()">Reset Semua Data</button></div></div></section>
+
+<section id="pengaturan" class="page"><div class="card"><h3>Pengaturan Struk</h3><div class="formgrid"><input id="shopName" placeholder="Nama warung"><input id="shopAddress" placeholder="Alamat"><input id="shopPhone" placeholder="No. HP"></div><br><button class="btn primary" onclick="saveSettings()">Simpan Pengaturan</button></div></section>
+</main></div>
+
+<div id="productModal" class="modal"><div class="modalbox"><h3 id="modalTitle">Tambah Menu</h3><div class="formgrid"><input id="pName" placeholder="Nama menu"><input id="pCat" placeholder="Kategori"><input id="pPrice" type="number" placeholder="Harga jual"><input id="pCost" type="number" placeholder="Harga modal"><input id="pStock" type="number" placeholder="Stok"><input id="pEmoji" placeholder="Emoji, contoh 🍜"></div><div class="modalactions"><button class="btn" onclick="closeModal()">Batal</button><button class="btn primary" onclick="saveProduct()">Simpan</button></div></div></div>
+
+<script>
+const KEY="warung_kasir_v1";
+let db=JSON.parse(localStorage.getItem(KEY)||"null")||{
+ products:[
+ {id:1,name:"Nasi Goreng",cat:"Makanan",price:15000,cost:9000,stock:50,emoji:"🍳"},
+ {id:2,name:"Mie Goreng",cat:"Makanan",price:14000,cost:8000,stock:50,emoji:"🍜"},
+ {id:3,name:"Lontong Tahu",cat:"Makanan",price:12000,cost:7000,stock:40,emoji:"🥗"},
+ {id:4,name:"Baso Aci Wonton",cat:"Makanan",price:13000,cost:7500,stock:40,emoji:"🥣"},
+ {id:5,name:"Es Teh",cat:"Minuman",price:5000,cost:1500,stock:80,emoji:"🧋"},
+ {id:6,name:"Es Jeruk",cat:"Minuman",price:6000,cost:2000,stock:60,emoji:"🍊"}
+ ],sales:[],settings:{name:"WARUNG MAKAN",address:"Alamat warung",phone:""}};
+let cart={}, activeCat="Semua", editId=null;
+const rupiah=n=>new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(n||0);
+function save(){localStorage.setItem(KEY,JSON.stringify(db))}
+function render(){
+ let cats=["Semua",...new Set(db.products.map(p=>p.cat||"Lainnya"))];
+ document.getElementById("cats").innerHTML=cats.map(c=>`<button class="${c===activeCat?'active':''}" onclick="activeCat='${esc(c)}';renderProducts()">${c}</button>`).join("");
+ renderProducts();renderCart();renderMenu();renderReports();loadSettings();
+}
+function esc(s){return String(s).replaceAll("'","&#39;")}
+function renderProducts(){
+ let q=(document.getElementById("search").value||"").toLowerCase();
+ let arr=db.products.filter(p=>(activeCat==="Semua"||p.cat===activeCat)&&p.name.toLowerCase().includes(q));
+ document.getElementById("products").innerHTML=arr.map(p=>`<button class="product" onclick="addCart(${p.id})" ${p.stock<=0?"disabled":""}><div class="emoji">${p.emoji||"🍽️"}</div><strong>${p.name}</strong><div class="price">${rupiah(p.price)}</div><div class="muted">Stok: ${p.stock}</div></button>`).join("")||'<div class="muted">Menu tidak ditemukan.</div>';
+}
+function addCart(id){let p=db.products.find(x=>x.id===id);if(!p||p.stock<=0)return;if(!cart[id])cart[id]=0;if(cart[id]<p.stock)cart[id]++;renderCart()}
+function renderCart(){
+ let ids=Object.keys(cart).filter(id=>cart[id]>0), total=0;
+ document.getElementById("cartItems").innerHTML=ids.length?ids.map(id=>{let p=db.products.find(x=>x.id==id),sub=p.price*cart[id];total+=sub;return `<div class="cart-row"><div class="rowtop"><b>${p.name}</b><span>${rupiah(sub)}</span></div><div class="qty"><button onclick="changeQty(${id},-1)">−</button><span>${cart[id]}</span><button onclick="changeQty(${id},1)">＋</button><span class="muted">${rupiah(p.price)}</span></div></div>`}).join(""):'<div class="muted" style="padding:20px 0;text-align:center">Belum ada pesanan.</div>';
+ let disc=+document.getElementById("discount").value||0, final=Math.max(0,total-disc);
+ document.getElementById("cartTotal").textContent=rupiah(final);
+ let paid=+document.getElementById("paid").value||0;document.getElementById("change").textContent=rupiah(Math.max(0,paid-final));
+}
+function changeQty(id,n){let p=db.products.find(x=>x.id==id);cart[id]=Math.max(0,Math.min(p.stock,cart[id]+n));renderCart()}
+function clearCart(){cart={};renderCart()}
+document.getElementById("search").oninput=renderProducts;document.getElementById("discount").oninput=renderCart;document.getElementById("paid").oninput=renderCart;
+
+document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));document.getElementById(b.dataset.page).classList.add("active");document.getElementById("title").textContent=b.innerText.trim()});
+function openProduct(id=null){editId=id;let p=id&&db.products.find(x=>x.id===id);document.getElementById("modalTitle").textContent=p?"Edit Menu":"Tambah Menu";document.getElementById("pName").value=p?.name||"";document.getElementById("pCat").value=p?.cat||"Makanan";document.getElementById("pPrice").value=p?.price||"";document.getElementById("pCost").value=p?.cost||"";document.getElementById("pStock").value=p?.stock??"";document.getElementById("pEmoji").value=p?.emoji||"🍽️";document.getElementById("productModal").classList.add("show")}
+function openQuickAdd(){openProduct()}function closeModal(){document.getElementById("productModal").classList.remove("show")}
+function saveProduct(){let data={name:pName.value.trim(),cat:pCat.value.trim()||"Lainnya",price:+pPrice.value||0,cost:+pCost.value||0,stock:+pStock.value||0,emoji:pEmoji.value.trim()||"🍽️"};if(!data.name||!data.price)return alert("Nama dan harga wajib diisi.");if(editId){Object.assign(db.products.find(p=>p.id===editId),data)}else{data.id=Date.now();db.products.push(data)}save();closeModal();render()}
+function renderMenu(){let q=(document.getElementById("menuSearch").value||"").toLowerCase();document.getElementById("menuTable").innerHTML=db.products.filter(p=>p.name.toLowerCase().includes(q)).map(p=>`<tr><td>${p.emoji} ${p.name}</td><td>${p.cat}</td><td>${rupiah(p.price)}</td><td>${p.stock}</td><td><button class="btn" onclick="openProduct(${p.id})">Edit</button> <button class="btn danger" onclick="delProduct(${p.id})">Hapus</button></td></tr>`).join("")}
+function delProduct(id){if(confirm("Hapus menu ini?")){db.products=db.products.filter(p=>p.id!==id);delete cart[id];save();render()}}
+function checkout(){
+ let ids=Object.keys(cart).filter(id=>cart[id]>0);if(!ids.length)return alert("Pesanan masih kosong.");
+ let subtotal=ids.reduce((s,id)=>s+db.products.find(p=>p.id==id).price*cart[id],0),discount=+document.getElementById("discount").value||0,total=Math.max(0,subtotal-discount),paid=+document.getElementById("paid").value||0;
+ if(document.getElementById("payment").value==="Tunai"&&paid<total)return alert("Uang pembayaran kurang.");
+ let items=ids.map(id=>{let p=db.products.find(p=>p.id==id),qty=cart[id];p.stock-=qty;return {name:p.name,qty,price:p.price,cost:p.cost}});
+ let sale={id:"TRX-"+Date.now(),date:new Date().toISOString(),items,subtotal,discount,total,paid,change:Math.max(0,paid-total),method:document.getElementById("payment").value};
+ db.sales.unshift(sale);save();printReceipt(sale);clearCart();render();
+}
+function printReceipt(s){
+ let w=window.open("","_blank","width=380,height=650");if(!w)return alert("Izinkan pop-up untuk mencetak struk.");
+ let lines=s.items.map(i=>`<div>${i.name} x${i.qty}<span>${rupiah(i.price*i.qty)}</span></div>`).join("");
+ w.document.write(`<html><head><title>${s.id}</title><style>body{font:13px monospace;width:280px;margin:15px auto}h3{text-align:center;margin:5px}p{text-align:center;margin:3px}.line{border-top:1px dashed #000;margin:8px 0}div{display:flex;justify-content:space-between;margin:5px 0}.big{font-weight:bold;font-size:16px}</style>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kasir Warung">
+</head><body><h3>${db.settings.name}</h3><p>${db.settings.address}</p><p>${db.settings.phone}</p><div class=line></div><p>${s.id}<br>${new Date(s.date).toLocaleString("id-ID")}</p><div class=line></div>${lines}<div class=line></div><div><b>Subtotal</b><b>${rupiah(s.subtotal)}</b></div><div><b>Diskon</b><b>${rupiah(s.discount)}</b></div><div class=big><b>Total</b><b>${rupiah(s.total)}</b></div><div><span>${s.method}</span><span>Bayar ${rupiah(s.paid)}</span></div><div><span>Kembali</span><span>${rupiah(s.change)}</span></div><div class=line></div><p>Terima kasih 🙏</p><script>window.print();<\/script>
+<script>
+if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+  navigator.serviceWorker.register("./sw.js").catch(()=>{});
+}
+</script>
+</body></html>`);w.document.close()}
+function renderReports(){let omzet=db.sales.reduce((s,x)=>s+x.total,0),items=db.sales.reduce((s,x)=>s+x.items.reduce((a,i)=>a+i.qty,0),0),profit=db.sales.reduce((s,x)=>s+x.items.reduce((a,i)=>a+(i.price-i.cost)*i.qty,0)-x.discount,0);sOmzet.textContent=rupiah(omzet);sTrans.textContent=db.sales.length;sItems.textContent=items;sProfit.textContent=rupiah(profit);salesTable.innerHTML=db.sales.slice(0,100).map(s=>`<tr><td>${s.id}</td><td>${new Date(s.date).toLocaleString("id-ID")}</td><td>${rupiah(s.total)}</td><td>${rupiah(s.paid)}</td><td>${s.method}</td></tr>`).join("")}
+function backup(){let blob=new Blob([JSON.stringify(db,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="backup-kasir-"+new Date().toISOString().slice(0,10)+".json";a.click();URL.revokeObjectURL(a.href)}
+document.getElementById("restore").onchange=e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);if(!x.products||!x.sales)throw 0;db=x;save();render();alert("Data berhasil dipulihkan.")}catch{alert("File backup tidak valid.")}};r.readAsText(f)}
+function resetAll(){if(confirm("Semua data transaksi dan menu akan dihapus. Lanjut?")){localStorage.removeItem(KEY);location.reload()}}
+function loadSettings(){shopName.value=db.settings.name;shopAddress.value=db.settings.address;shopPhone.value=db.settings.phone}
+function saveSettings(){db.settings={name:shopName.value||"WARUNG MAKAN",address:shopAddress.value||"",phone:shopPhone.value||""};save();alert("Pengaturan tersimpan.")}
+render();
+</script>
+
+<script>
+if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+  navigator.serviceWorker.register("./sw.js").catch(()=>{});
+}
+</script>
+</body></html>
